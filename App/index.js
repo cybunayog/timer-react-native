@@ -1,8 +1,14 @@
-import React, {Component} from 'react';
+/* eslint-disable spaced-comment */
+/*********************
+ *     Libraries     *
+ *********************/
+import React, { Component } from 'react';
 import { StyleSheet, Text, View, StatusBar, TouchableOpacity, Dimensions, Picker, Platform } from 'react-native';
 
+/*********************
+ *      Styles       *
+ *********************/
 const screen = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -55,15 +61,31 @@ const styles = StyleSheet.create({
   },
 });
 
-// 3 => 03, 10 => 10
+/*********************
+ *  State Handlers   *
+ *********************/
+/**
+ * Formats single digit numbers
+ * @param {Integer} number 
+ * 
+ * EX) 3 => 03, 10 => 10
+ */
 const formatNumber = (number) => `0${number}`.slice(-2)
 
+/**
+ * Gets remaining time
+ *  
+ * @param {Integer} time
+ */
 const getRemaining = (time) => {
   const minutes = Math.floor(time/60);
   const seconds = time - minutes * 60;
   return {minutes: formatNumber(minutes), seconds: formatNumber(seconds)};
 };
 
+/**
+ * Increments numbers based on parameter's length
+ */
 const createArray = length => {
   // Incrementing numbers
   const arr = [];
@@ -75,19 +97,18 @@ const createArray = length => {
   return arr;
 };
 
+// Hard-coded values
 const AVAILABLE_MINUTES = createArray(10); // Max 10
 const AVAILABLE_SECONDS = createArray(60); // Max 60
 
+/*********************
+ *   App Component   *
+ *********************/
 export default class App extends Component {
-// THIS IS WHAT PRITTIER WANTS
-//   constructor() {
-//     super();
-//     this.state = {
-//     // A state is sort of like a snapshot that is constantly updating the component
-//     remainingSeconds: 5,
-//   }
-// };
 
+/***************************
+ *     Initial States      *
+ ***************************/
 state = {
   remainingSeconds: 5,
   isRunning: false,
@@ -97,12 +118,23 @@ state = {
 
 interval = null;
 
+  
+/***************************
+ * State Handler Functions *
+ ***************************/
+  
+/**
+ *  Handles when timer reaches 0
+ */
 componentDidUpdate(prevProp, prevState) {
   if (this.state.remainingSeconds === 0 && prevState.remainingSeconds !== 0) {
     this.stop();
   }
 }
 
+/**
+ * Clears interval
+ */
 componentWillUnmount() {
   if (this.interval) {
     // Avoiding memory links
@@ -110,6 +142,9 @@ componentWillUnmount() {
   }
 }
 
+/**
+ * Starts timer countdown, interval of 1000ms
+ */
 start = () => {
   this.setState(state => ({
     // count down seconds
@@ -125,8 +160,10 @@ start = () => {
   }, 1000);
 };
 
+/**
+ * Stops timer countdown when reaches 0
+ */
 stop = () => {
-  // the stop function clears when timer reaches 0
   clearInterval(this.interval);
   this.interval = null;
   this.setState({
@@ -134,7 +171,14 @@ stop = () => {
     isRunning: false,
   });
 }
+ 
+/***************************
+ * Functional Components   *
+ ***************************/
 
+/**
+ * Renders scrollable pickers for minutes & seconds
+ */
 renderPickers = () => (
   <View style={styles.pickerContainer}>
     <Picker
@@ -168,9 +212,12 @@ renderPickers = () => (
     </Picker>
     <Text style={styles.pickerItem}>seconds</Text>
   </View>
-);
-
-  render () {
+  );
+  
+  render() {
+    /**
+     * Initial render to App.js
+     */
     const {minutes, seconds} = getRemaining(this.state.remainingSeconds);
     return (
       <View style={styles.container}>
