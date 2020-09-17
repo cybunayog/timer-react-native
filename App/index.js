@@ -4,6 +4,13 @@
  *********************/
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, StatusBar, TouchableOpacity, Dimensions, Picker, Platform } from 'react-native';
+import { Audio } from 'expo-av';
+
+/*********************
+ *       Files       *
+ *********************/
+const endAudio = require('timer/audio/thanksDylan.m4a');
+const startAudio = require('timer/audio/lickity.m4a');
 
 /*********************
  *      Styles       *
@@ -57,7 +64,6 @@ const styles = StyleSheet.create({
   pickerContainer: {
     flexDirection: "row",
     alignItems: "center",
-
   },
 });
 
@@ -97,6 +103,18 @@ const createArray = length => {
   return arr;
 };
 
+const handleAudio = async (audio) =>  {
+  const playbackObject = new Audio.Sound();
+  try {
+    await playbackObject.loadAsync(audio);
+    await playbackObject.playAsync();
+  } catch (err) {
+    console.log(`You gone goof'd: ${err}`);
+  }
+};
+  
+
+
 // Hard-coded values
 const AVAILABLE_MINUTES = createArray(10); // Max 10
 const AVAILABLE_SECONDS = createArray(60); // Max 60
@@ -114,6 +132,8 @@ state = {
   isRunning: false,
   selectedMinutes: "0",
   selectedSeconds: "5",
+  isPlaying: false,
+  volume: 2
 };
 
 interval = null;
@@ -130,6 +150,7 @@ componentDidUpdate(prevProp, prevState) {
   if (this.state.remainingSeconds === 0 && prevState.remainingSeconds !== 0) {
     this.stop();
   }
+  
 }
 
 /**
@@ -142,34 +163,42 @@ componentWillUnmount() {
   }
 }
 
+
 /**
  * Starts timer countdown, interval of 1000ms
+ * 
+ * Audio start playing
  */
-start = () => {
+  start = () => {
+  handleAudio(startAudio);
   this.setState(state => ({
     // count down seconds
     remainingSeconds: parseInt(state.selectedMinutes, 10) * 60 + parseInt(state.selectedSeconds, 10),
     isRunning: true,
+    isPlaying: true,
   }))
 
   this.interval = setInterval(() => {
     // the interval is being run in 1000ms, and subtracting the seconds
     this.setState(state => ({
-      remainingSeconds: state.remainingSeconds -1
+      remainingSeconds: state.remainingSeconds - 1,
     }));
   }, 1000);
 };
 
 /**
- * Stops timer countdown when reaches 0
+ * Stops timer countdown when reaches 0, 
  */
 stop = () => {
   clearInterval(this.interval);
   this.interval = null;
+
   this.setState({
     remainingSeconds: 5, // Temporary
     isRunning: false,
+    isPlaying: false
   });
+  handleAudio(endAudio);
 }
  
 /***************************
