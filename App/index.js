@@ -9,8 +9,9 @@ import { Audio } from 'expo-av';
 /*********************
  *       Files       *
  *********************/
-const endAudio = require('timer/audio/thanksDylan.m4a');
 const startAudio = require('timer/audio/lickity.m4a');
+const endAudio = require('timer/audio/thanksDylan.m4a');
+
 
 /*********************
  *      Styles       *
@@ -103,21 +104,38 @@ const createArray = length => {
   return arr;
 };
 
+/*********************
+ * Global Variables  *
+ *********************/
+const AVAILABLE_MINUTES = createArray(10); // Max 10
+const AVAILABLE_SECONDS = createArray(60); // Max 60
+const playbackObject = new Audio.Sound();
+
+
+/*********************
+ *   Audio Handler   *
+ *********************/
+
 const handleAudio = async (audio) =>  {
-  const playbackObject = new Audio.Sound();
   try {
+    await playbackObject.unloadAsync();
     await playbackObject.loadAsync(audio);
     await playbackObject.playAsync();
   } catch (err) {
     console.log(`You gone goof'd: ${err}`);
   }
 };
-  
 
+const handleLoopAudio = async (audio) => {
+  try {
+    await playbackObject.unloadAsync();
+    await playbackObject.loadAsync(audio);
+    await playbackObject.replayAsync({isLooping: true});
+  } catch (err) {
+    console.log(`You gone goof'd: ${err}`);
+  }
+}
 
-// Hard-coded values
-const AVAILABLE_MINUTES = createArray(10); // Max 10
-const AVAILABLE_SECONDS = createArray(60); // Max 60
 
 /*********************
  *   App Component   *
@@ -132,12 +150,9 @@ state = {
   isRunning: false,
   selectedMinutes: "0",
   selectedSeconds: "5",
-  isPlaying: false,
-  volume: 2
 };
 
 interval = null;
-
   
 /***************************
  * State Handler Functions *
@@ -162,22 +177,22 @@ componentWillUnmount() {
     clearInterval(this.interval);
   }
 }
-
-
+  
+ 
 /**
  * Starts timer countdown, interval of 1000ms
  * 
  * Audio start playing
  */
-  start = () => {
-  handleAudio(startAudio);
+start = () => {
   this.setState(state => ({
-    // count down seconds
-    remainingSeconds: parseInt(state.selectedMinutes, 10) * 60 + parseInt(state.selectedSeconds, 10),
-    isRunning: true,
-    isPlaying: true,
-  }))
-
+      // count down seconds
+      remainingSeconds: parseInt(state.selectedMinutes, 10) * 60 + parseInt(state.selectedSeconds, 10),
+      isRunning: true,
+    }));
+  
+  handleLoopAudio(startAudio);
+    
   this.interval = setInterval(() => {
     // the interval is being run in 1000ms, and subtracting the seconds
     this.setState(state => ({
@@ -192,14 +207,14 @@ componentWillUnmount() {
 stop = () => {
   clearInterval(this.interval);
   this.interval = null;
-
   this.setState({
     remainingSeconds: 5, // Temporary
     isRunning: false,
-    isPlaying: false
   });
   handleAudio(endAudio);
 }
+  
+ 
  
 /***************************
  * Functional Components   *
