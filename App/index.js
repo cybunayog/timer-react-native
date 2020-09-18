@@ -302,9 +302,9 @@ export default class App extends Component {
         <StatusBar barStyle="light-content" />
         {this.state.isRunning ? (
           // if running, render what we currently have
-          <Text
-            style={styles.timerText}
-          >{`${hours}:${minutes}:${seconds}`}</Text>
+          <Text style={styles.timerText}>
+            {`${hours}:${minutes}:${seconds}`}
+          </Text>
         ) : (
           this.renderPickers()
         )}
