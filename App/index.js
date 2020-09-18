@@ -15,11 +15,10 @@ import {
 } from "react-native";
 import { Audio } from "expo-av";
 
-const playbackObject = new Audio.Sound();
 /*********************
  *       Files       *
  *********************/
-const startAudio = require("timer/audio/niconii.mp3");
+const startAudio = require("timer/audio/lickity.m4a");
 const endAudio = require("timer/audio/thanksDylan.m4a");
 
 /*********************
@@ -94,9 +93,15 @@ const formatNumber = (number) => `0${number}`.slice(-2);
  * @param {Integer} time
  */
 const getRemaining = (time) => {
-  const minutes = Math.floor(time / 60);
-  const seconds = time - minutes * 60;
-  return { minutes: formatNumber(minutes), seconds: formatNumber(seconds) };
+  //if time = 6753
+  const hours = Math.floor(time / 3600); // hours = 1
+  const minutes = Math.floor(time / 60) - hours * 60; // minutes = 112 - 60 = 52
+  const seconds = time - minutes * 60 - hours * 3600; // seconds = 6753 - 3120 - 3600 = 33
+  return {
+    hours: formatNumber(hours),
+    minutes: formatNumber(minutes),
+    seconds: formatNumber(seconds),
+  };
 };
 
 /**
@@ -112,6 +117,18 @@ const createArray = (length) => {
   }
   return arr;
 };
+
+/*********************
+ * Global Variables  *
+ *********************/
+const AVAILABLE_HOURS = createArray(10); // Max 10
+const AVAILABLE_MINUTES = createArray(60); // Max 60
+const AVAILABLE_SECONDS = createArray(60); // Max 60
+const playbackObject = new Audio.Sound();
+
+/*********************
+ *   Audio Handler   *
+ *********************/
 
 const handleAudio = async (audio) => {
   try {
@@ -132,9 +149,6 @@ const handleLoopAudio = async (audio) => {
     console.log(`You gone goof'd: ${err}`);
   }
 };
-// Hard-coded values
-const AVAILABLE_MINUTES = createArray(10); // Max 10
-const AVAILABLE_SECONDS = createArray(60); // Max 60
 
 /*********************
  *   App Component   *
@@ -146,9 +160,9 @@ export default class App extends Component {
   state = {
     remainingSeconds: 5,
     isRunning: false,
+    selectedHours: "0",
     selectedMinutes: "0",
     selectedSeconds: "5",
-    isLooping: false,
   };
 
   interval = null;
@@ -185,6 +199,7 @@ export default class App extends Component {
     this.setState((state) => ({
       // count down seconds
       remainingSeconds:
+        parseInt(state.selectedHours, 10) * 3600 +
         parseInt(state.selectedMinutes, 10) * 60 +
         parseInt(state.selectedSeconds, 10),
       isRunning: true,
@@ -222,6 +237,24 @@ export default class App extends Component {
    */
   renderPickers = () => (
     <View style={styles.pickerContainer}>
+      {/* Hours */}
+      <Picker
+        style={styles.picker}
+        itemStyle={styles.pickerItem}
+        selectedValue={this.state.selectedHours}
+        onValueChange={(itemValue) => {
+          // Update the state
+          this.setState({ selectedHours: itemValue });
+        }}
+        mode="dropdown"
+      >
+        {AVAILABLE_HOURS.map((value) => (
+          <Picker.Item key={value} label={value} value={value} />
+        ))}
+      </Picker>
+      <Text style={styles.pickerItem}>hours</Text>
+
+      {/* Minutes */}
       <Picker
         style={styles.picker}
         itemStyle={styles.pickerItem}
@@ -237,6 +270,8 @@ export default class App extends Component {
         ))}
       </Picker>
       <Text style={styles.pickerItem}>minutes</Text>
+
+      {/* Seconds */}
       <Picker
         style={styles.picker}
         itemStyle={styles.pickerItem}
@@ -259,13 +294,17 @@ export default class App extends Component {
     /**
      * Initial render to App.js
      */
-    const { minutes, seconds } = getRemaining(this.state.remainingSeconds);
+    const { hours, minutes, seconds } = getRemaining(
+      this.state.remainingSeconds
+    );
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />
         {this.state.isRunning ? (
           // if running, render what we currently have
-          <Text style={styles.timerText}>{`${minutes}:${seconds}`}</Text>
+          <Text
+            style={styles.timerText}
+          >{`${hours}:${minutes}:${seconds}`}</Text>
         ) : (
           this.renderPickers()
         )}
